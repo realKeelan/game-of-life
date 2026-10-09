@@ -394,26 +394,26 @@ function initGameOfLife() {
   });
 
   resetBtn.addEventListener("click", () => {
-    isRunning = false;
-    startBtn.innerText = "Start";
-    startBtn.style.backgroundColor = "#eab308";
-    startBtn.style.color = "#0f172a";
-    clearTimeout(loopTimeoutId); // rm old loops
+    stopSimulation();
     generation = 0;
     spellYellow();
     draw();
   });
 
   clearBtn.addEventListener("click", () => {
-    isRunning = false;
-    startBtn.innerText = "Start";
-    startBtn.style.backgroundColor = "#eab308";
-    startBtn.style.color = "#0f172a";
-    clearTimeout(loopTimeoutId);
+    stopSimulation();
     generation = 0;
     grid = createGrid();
     draw();
   });
+
+  function stopSimulation() {
+    isRunning = false;
+    startBtn.innerText = "Start";
+    startBtn.style.backgroundColor = "#eab308";
+    startBtn.style.color = "#0f172a";
+    clearTimeout(loopTimeoutId); // rm old loops
+  }
 
   spellYellow();
   draw();
