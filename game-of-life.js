@@ -77,7 +77,7 @@ function initGameOfLife() {
       border-radius: 8px;
       line-height: 1.6;
     }
-    .rules h2 {
+    .rules h3 {
       margin-top: 0;
       color: #fde047;
     }
