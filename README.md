@@ -18,7 +18,8 @@ Then open the address it prints (usually `http://localhost:3000`).
 
 - **Start / Pause:** run or stop the simulation
 - **Reset:** bring back the YELLOW pattern
-- **Click or drag on the grid:** draw live cells
+- **Clear:** clears the canvas completely to draw and test any shape or scribble
+- **Click or drag on the grid:** draw live cells on dead cells or unalive live cells
 
 ## Rules
 
