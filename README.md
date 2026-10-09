@@ -4,6 +4,10 @@ A simple Game of Life in the browser, written in plain JavaScript. The grid star
 
 ## Run it
 
+The easiest way is to open `index.html` in your browser.
+
+To run it on localhost instead:
+
 ```bash
 npx serve
 ```
@@ -14,7 +18,7 @@ Then open the address it prints (usually `http://localhost:3000`).
 
 - **Start / Pause:** run or stop the simulation
 - **Reset:** bring back the YELLOW pattern
-- **Click or drag (or touch) the grid:** draw live cells
+- **Click or drag the grid:** draw live cells
 
 ## Rules
 
