@@ -18,7 +18,7 @@ Then open the address it prints (usually `http://localhost:3000`).
 
 - **Start / Pause:** run or stop the simulation
 - **Reset:** bring back the YELLOW pattern
-- **Click or drag the grid:** draw live cells
+- **Click or drag on the grid:** draw live cells
 
 ## Rules
 

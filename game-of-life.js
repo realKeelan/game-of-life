@@ -25,7 +25,7 @@ function initGameOfLife() {
       box-sizing: border-box;
     }
     h1 {
-      margin-bottom: 5px;
+      margin-bottom: 25px;
       color: #fde047;
     }
     .controls {
