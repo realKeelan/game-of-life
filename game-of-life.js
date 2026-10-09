@@ -107,7 +107,7 @@ function initGameOfLife() {
         <li>Click <strong>Start</strong> to run the simulation, and <strong>Pause</strong> to stop it.</li>
         <li>Click <strong>Reset</strong> to bring back the "YELLOW" starting pattern.</li>
         <li>Click <strong>Clear</strong> to clear the grid completely.</li>
-        <li>Click or drag on the grid to bring cells to life.</li>
+        <li>Click or drag on the grid to bring cells to life or kill them.</li>
       </ul>
       <p>Every generation, all cells update at the same time using these rules:</p>
       <ol>
