@@ -168,6 +168,18 @@ function initGameOfLife() {
     const startRow = 16;
     let startCol = 8;
 
+    const letterL = [
+      [0, 0],
+      [1, 0],
+      [2, 0],
+      [3, 0],
+      [4, 0],
+      [5, 0],
+      [5, 1],
+      [5, 2],
+      [5, 3],
+      [5, 4],
+    ];
     const letters = [
       // [rowOffset, colOffset]
       // Y
@@ -203,31 +215,9 @@ function initGameOfLife() {
         [5, 4],
       ],
       // L
-      [
-        [0, 0],
-        [1, 0],
-        [2, 0],
-        [3, 0],
-        [4, 0],
-        [5, 0],
-        [5, 1],
-        [5, 2],
-        [5, 3],
-        [5, 4],
-      ],
+      letterL,
       // L
-      [
-        [0, 0],
-        [1, 0],
-        [2, 0],
-        [3, 0],
-        [4, 0],
-        [5, 0],
-        [5, 1],
-        [5, 2],
-        [5, 3],
-        [5, 4],
-      ],
+      letterL,
       // O
       [
         [0, 1],
@@ -276,33 +266,23 @@ function initGameOfLife() {
   }
 
   function draw() {
-    // context.clearRect(0, 0, canvas.width, canvas.height);
     let liveCount = 0;
 
     for (let row = 0; row < ROWS; row++) {
       for (let col = 0; col < COLS; col++) {
-        if (grid[row][col] === 1) {
-          context.fillStyle = "#fde047";
-          context.fillRect(
-            col * CELL_SIZE,
-            row * CELL_SIZE,
-            // -1 to leave spave for grid effect
-            CELL_SIZE - 1,
-            CELL_SIZE - 1,
-          );
-          liveCount++;
-        } else {
-          context.fillStyle = "#1e293b";
-          context.fillRect(
-            col * CELL_SIZE,
-            row * CELL_SIZE,
-            CELL_SIZE - 1,
-            CELL_SIZE - 1,
-          );
-        }
+        const alive = grid[row][col] === 1;
+        context.fillStyle = alive ? "#fde047" : "#1e293b";
+        context.fillRect(
+          col * CELL_SIZE,
+          row * CELL_SIZE,
+          CELL_SIZE - 1,
+          CELL_SIZE - 1,
+        );
+        if (alive) liveCount++;
       }
     }
-    statsDisplay.innerText = `Generation: ${generation} | Live Cells: ${liveCount}`;
+
+    statsDisplay.textContent = `Generation: ${generation} | Live Cells: ${liveCount}`;
   }
 
   function runNextGeneration() {
@@ -344,39 +324,42 @@ function initGameOfLife() {
   }
 
   function activateCellAtMouse(mouseEvent) {
-    const canvasBounds = canvas.getBoundingClientRect();
-    const mouseX = mouseEvent.clientX - canvasBounds.left;
-    const mouseY = mouseEvent.clientY - canvasBounds.top;
-    const col = Math.floor(mouseX / CELL_SIZE); // column the mouse is over
-    const row = Math.floor(mouseY / CELL_SIZE); // row the mouse is over
+    const cell = getCellFromMouse(mouseEvent);
+    if (!cell) return;
+    grid[cell.row][cell.col] = paintValue;
+    draw();
+  }
 
-    if (row >= 0 && row < ROWS && col >= 0 && col < COLS) {
-      // grid[row][col] = 1;
-      grid[row][col] = paintValue;
-      draw();
-    }
+  function getCellFromMouse(mouseEvent) {
+    const bounds = canvas.getBoundingClientRect();
+    const col = Math.floor((mouseEvent.clientX - bounds.left) / CELL_SIZE);
+    const row = Math.floor((mouseEvent.clientY - bounds.top) / CELL_SIZE);
+    const onGrid = row >= 0 && row < ROWS && col >= 0 && col < COLS;
+    return onGrid ? { row, col } : null;
+  }
+
+  function setRunning(running) {
+    isRunning = running;
+    startBtn.innerText = running ? "Pause" : "Start";
+    startBtn.style.backgroundColor = running ? "#ef4444" : "#eab308";
+    startBtn.style.color = running ? "#f8fafc" : "#0f172a";
+    clearTimeout(loopTimeoutId); // rm old loops
+    if (running) gameLoop();
+  }
+
+  function resetGrid(setup) {
+    setRunning(false);
+    generation = 0;
+    setup();
+    draw();
   }
 
   canvas.addEventListener("mousedown", (mouseEvent) => {
     isDrawing = true;
-
-    const canvasBounds = canvas.getBoundingClientRect();
-    const col = Math.floor(
-      (mouseEvent.clientX - canvasBounds.left) / CELL_SIZE,
-    );
-    const row = Math.floor((mouseEvent.clientY - canvasBounds.top) / CELL_SIZE);
-
-    if (row >= 0 && row < ROWS && col >= 0 && col < COLS) {
-      paintValue = grid[row][col] === 1 ? 0 : 1; // alive? then erase. dead? then draw.
-    }
-
+    const cell = getCellFromMouse(mouseEvent);
+    if (cell) paintValue = grid[cell.row][cell.col] === 1 ? 0 : 1; // alive? erase. dead? draw.
     activateCellAtMouse(mouseEvent);
   });
-
-  // canvas.addEventListener("mousedown", (mouseEvent) => {
-  //   isDrawing = true;
-  //   activateCellAtMouse(mouseEvent);
-  // });
 
   canvas.addEventListener("mousemove", (mouseEvent) => {
     if (isDrawing) activateCellAtMouse(mouseEvent);
@@ -384,36 +367,11 @@ function initGameOfLife() {
 
   window.addEventListener("mouseup", () => (isDrawing = false));
 
-  startBtn.addEventListener("click", () => {
-    isRunning = !isRunning;
-    startBtn.innerText = isRunning ? "Pause" : "Start";
-    startBtn.style.backgroundColor = isRunning ? "#ef4444" : "#eab308";
-    startBtn.style.color = isRunning ? "#f8fafc" : "#0f172a";
-    clearTimeout(loopTimeoutId); // rm old loops
-    if (isRunning) gameLoop();
-  });
-
-  resetBtn.addEventListener("click", () => {
-    stopSimulation();
-    generation = 0;
-    spellYellow();
-    draw();
-  });
-
-  clearBtn.addEventListener("click", () => {
-    stopSimulation();
-    generation = 0;
-    grid = createGrid();
-    draw();
-  });
-
-  function stopSimulation() {
-    isRunning = false;
-    startBtn.innerText = "Start";
-    startBtn.style.backgroundColor = "#eab308";
-    startBtn.style.color = "#0f172a";
-    clearTimeout(loopTimeoutId); // rm old loops
-  }
+  startBtn.addEventListener("click", () => setRunning(!isRunning));
+  resetBtn.addEventListener("click", () => resetGrid(spellYellow));
+  clearBtn.addEventListener("click", () =>
+    resetGrid(() => (grid = createGrid())),
+  );
 
   spellYellow();
   draw();
