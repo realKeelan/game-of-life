@@ -323,13 +323,6 @@ function initGameOfLife() {
     loopTimeoutId = setTimeout(gameLoop, 150);
   }
 
-  function activateCellAtMouse(mouseEvent) {
-    const cell = getCellFromMouse(mouseEvent);
-    if (!cell) return;
-    grid[cell.row][cell.col] = paintValue;
-    draw();
-  }
-
   function getCellFromMouse(mouseEvent) {
     const bounds = canvas.getBoundingClientRect();
     const col = Math.floor((mouseEvent.clientX - bounds.left) / CELL_SIZE);
@@ -338,9 +331,16 @@ function initGameOfLife() {
     return onGrid ? { row, col } : null;
   }
 
+  function activateCellAtMouse(mouseEvent) {
+    const cell = getCellFromMouse(mouseEvent);
+    if (!cell) return;
+    grid[cell.row][cell.col] = paintValue;
+    draw();
+  }
+
   function setRunning(running) {
     isRunning = running;
-    startBtn.innerText = running ? "Pause" : "Start";
+    startBtn.textContent = running ? "Pause" : "Start";
     startBtn.style.backgroundColor = running ? "#ef4444" : "#eab308";
     startBtn.style.color = running ? "#f8fafc" : "#0f172a";
     clearTimeout(loopTimeoutId); // rm old loops
