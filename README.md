@@ -6,13 +6,19 @@ A simple Game of Life in the browser, written in plain JavaScript. The grid star
 
 The easiest way is to open `index.html` in your browser.
 
-To run it on localhost instead:
+To run it on localhost with the local development script:
+
+```bash
+npm run dev
+```
+
+or
 
 ```bash
 npx serve
 ```
 
-Then open the address it prints (usually `http://localhost:3000`).
+Then open the address it prints.
 
 ## Controls
 

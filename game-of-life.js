@@ -1,11 +1,4 @@
 function initGameOfLife() {
-  document.title = " Yellow Simulation Conway's Game of Life";
-
-  const viewport = document.createElement("meta");
-  viewport.name = "viewport";
-  viewport.content = "width=device-width, initial-scale=1.0";
-  document.head.appendChild(viewport);
-
   const style = document.createElement("style");
   style.textContent = `
     body {
@@ -91,7 +84,7 @@ function initGameOfLife() {
   document.head.appendChild(style);
 
   document.body.innerHTML = `
-    <h1>Conway's Game of Life</h1>
+      <h1>Conway's Game of Life</h1>
     <div class="controls">
       <button id="startButton">Start</button>
       <button id="resetButton">Reset to 'YELLOW'</button>
