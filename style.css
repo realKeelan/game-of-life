@@ -1,0 +1,156 @@
+:root {
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --border: #334155;
+  --border-strong: #475569;
+  --text: #f8fafc;
+  --text-muted: #94a3b8;
+  --accent: #fde047;
+  --accent-strong: #eab308;
+  --accent-strong-hover: #ca8a04;
+  --danger: #ef4444;
+
+  /* Read by game-of-life.js when drawing the canvas. */
+  --cell-alive: var(--accent);
+  --cell-dead: var(--surface);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 20px;
+  min-height: 100vh;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 40px);
+}
+
+h1 {
+  margin: 0 0 25px;
+  color: var(--accent);
+  text-align: center;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+button {
+  padding: 8px 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background-color: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+button:hover:not(:disabled) {
+  background-color: var(--border);
+  border-color: #64748b;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button.primary {
+  border-color: var(--bg);
+  background-color: var(--accent-strong);
+  color: var(--bg);
+}
+
+button.primary:hover:not(:disabled) {
+  background-color: var(--accent-strong-hover);
+}
+
+button.primary[data-running="true"] {
+  background-color: var(--danger);
+  color: var(--text);
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.speed {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.speed output {
+  min-width: 5.5ch;
+  font-variant-numeric: tabular-nums;
+}
+
+canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  cursor: crosshair;
+  touch-action: none; /* lets pointer events paint on touch screens instead of scrolling */
+}
+
+.stats {
+  margin: 6px 0 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.rules {
+  max-width: 700px;
+  margin-top: 30px;
+  padding: 20px 24px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background-color: var(--surface);
+  line-height: 1.6;
+}
+
+.rules h2 {
+  margin: 0 0 12px;
+  color: var(--accent);
+  font-size: 1.17rem;
+}
+
+.rules li {
+  margin-bottom: 8px;
+}
+
+.rules strong {
+  color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button {
+    transition: none;
+  }
+}

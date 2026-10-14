@@ -7,10 +7,78 @@
       name="description"
       content="Play Conway's Game of Life in your browser, starting with a YELLOW pattern."
     />
-    <title>CGol Yellow Simulation</title>
+    <title>CGol YELLOW</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="game-of-life.js" defer></script>
   </head>
   <body>
-    <script src="game-of-life.js"></script>
+    <main>
+      <h1>Conway's Game of Life</h1>
+
+      <div class="controls">
+        <button
+          id="startButton"
+          class="primary"
+          type="button"
+          data-running="false"
+        >
+          Start
+        </button>
+        <button id="stepButton" type="button">Step</button>
+        <button id="resetButton" type="button">Reset to YELLOW</button>
+        <button id="clearButton" type="button">Clear</button>
+      </div>
+
+      <canvas
+        id="lifeCanvas"
+        role="img"
+        aria-label="Game of Life grid. Click or drag to toggle cells."
+      ></canvas>
+      <p class="stats" id="stats">Generation: 0 | Live cells: 0</p>
+
+      <section class="rules">
+        <h2>How to use this page</h2>
+        <ul>
+          <li>
+            Press <strong>Start</strong> (or the space bar) to run the
+            simulation and <strong>Pause</strong> to stop it.
+          </li>
+          <li><strong>Step</strong> advances one generation while paused.</li>
+          <li>
+            <strong>Reset</strong> brings back the YELLOW starting pattern, and
+            <strong>Clear</strong> empties the grid.
+          </li>
+          <li>
+            Click or drag on the grid to bring cells to life or remove them.
+          </li>
+        </ul>
+        <p>
+          Every generation, all cells update at the same time using these rules:
+        </p>
+        <ol>
+          <li>
+            <strong>Underpopulation:</strong> a live cell with fewer than 2 live
+            neighbours dies.
+          </li>
+          <li>
+            <strong>Survival:</strong> a live cell with 2 or 3 live neighbours
+            lives on.
+          </li>
+          <li>
+            <strong>Overpopulation:</strong> a live cell with more than 3 live
+            neighbours dies.
+          </li>
+          <li>
+            <strong>Reproduction:</strong> a dead cell with exactly 3 live
+            neighbours becomes alive.
+          </li>
+        </ol>
+        <p>
+          The edges wrap around, so a cell on the right edge neighbours the cell
+          on the left edge, and the top connects to the bottom.
+        </p>
+      </section>
+    </main>
   </body>
 </html>
