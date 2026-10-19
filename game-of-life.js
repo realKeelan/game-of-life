@@ -1,306 +1,291 @@
-"use strict";
+const CELL_SIZE = 10; // 10x10 pixels
+const COLS = 70;
+const ROWS = 40;
+const SIZE = COLS * ROWS;
+const TICK_MS = 150;
+const ALIVE_COLOR = "#fde047";
+const DEAD_COLOR = "#1e293b";
+const WORD = "YELLOW";
+const WORD_START_ROW = 16;
+const WORD_START_COL = 8;
+const LETTER_SPACING = 9;
 
-var Yellow = Yellow || {};
+const LETTERS = {
+  Y: [
+    [0, 0],
+    [0, 6],
+    [1, 1],
+    [1, 5],
+    [2, 2],
+    [2, 4],
+    [3, 3],
+    [4, 3],
+    [5, 3],
+  ],
+  E: [
+    [0, 0],
+    [0, 1],
+    [0, 2],
+    [0, 3],
+    [0, 4],
+    [1, 0],
+    [2, 0],
+    [2, 1],
+    [2, 2],
+    [2, 3],
+    [3, 0],
+    [4, 0],
+    [5, 0],
+    [5, 1],
+    [5, 2],
+    [5, 3],
+    [5, 4],
+  ],
+  L: [
+    [0, 0],
+    [1, 0],
+    [2, 0],
+    [3, 0],
+    [4, 0],
+    [5, 0],
+    [5, 1],
+    [5, 2],
+    [5, 3],
+    [5, 4],
+  ],
+  O: [
+    [0, 1],
+    [0, 2],
+    [0, 3],
+    [1, 0],
+    [1, 4],
+    [2, 0],
+    [2, 4],
+    [3, 0],
+    [3, 4],
+    [4, 0],
+    [4, 4],
+    [5, 1],
+    [5, 2],
+    [5, 3],
+  ],
+  W: [
+    [0, 0],
+    [0, 6],
+    [1, 0],
+    [1, 6],
+    [2, 0],
+    [2, 3],
+    [2, 6],
+    [3, 0],
+    [3, 2],
+    [3, 4],
+    [3, 6],
+    [4, 0],
+    [4, 2],
+    [4, 4],
+    [4, 6],
+    [5, 1],
+    [5, 5],
+  ],
+};
 
-Yellow.GameOfLife = (function () {
-  const CELL_SIZE = 10; // 10x10 pixels
-  const COLS = 70;
-  const ROWS = 40;
-  const TICK_MS = 150;
-  const COLORS = Object.freeze({ alive: "#fde047", dead: "#1e293b" });
+const indexOf = (row, col) => row * COLS + col;
 
-  function getNextGrid(currentGrid) {
-    const rows = currentGrid.length;
-    const cols = currentGrid[0].length;
-    const nextGrid = currentGrid.map((row) => row.map(() => 0));
+export function computeNextGeneration(current, target) {
+  let liveCount = 0;
 
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < cols; col++) {
-        let neighbors = 0;
+  for (let row = 0; row < ROWS; row++) {
+    for (let col = 0; col < COLS; col++) {
+      let neighbors = 0;
 
-        // checks row & above & below the current row
-        for (let rowOffset = -1; rowOffset <= 1; rowOffset++) {
-          // checks col & left & right of the current column
-          for (let colOffset = -1; colOffset <= 1; colOffset++) {
-            if (rowOffset === 0 && colOffset === 0) continue;
-            const neighborRow = (row + rowOffset + rows) % rows; // wraps around top/bottom edges
-            const neighborCol = (col + colOffset + cols) % cols; // wraps around left/right edges
-            neighbors += currentGrid[neighborRow][neighborCol]; // add 1 if alive, 0 if dead.
-          }
-        }
+      for (let rowShift = -1; rowShift <= 1; rowShift++) {
+        for (let colShift = -1; colShift <= 1; colShift++) {
+          if (rowShift === 0 && colShift === 0) continue; // skip the cell itself
 
-        if (
-          currentGrid[row][col] === 1 &&
-          (neighbors === 2 || neighbors === 3)
-        ) {
-          nextGrid[row][col] = 1; // survives
-        } else if (currentGrid[row][col] === 0 && neighbors === 3) {
-          nextGrid[row][col] = 1; // becomes alive
-        }
-        // everything else stays 0 (dies or stays dead), since nextGrid starts empty
-      }
-    }
-
-    return nextGrid;
-  }
-
-  function getRequiredElement(id) {
-    const element = document.getElementById(id);
-    if (!element) throw new Error(`Game of Life: missing element #${id}`);
-    return element;
-  }
-
-  function onLoad() {
-    const canvas = getRequiredElement("lifeCanvas");
-    const startBtn = getRequiredElement("startButton");
-    const stepBtn = getRequiredElement("stepButton");
-    const resetBtn = getRequiredElement("resetButton");
-    const clearBtn = getRequiredElement("clearButton");
-    const statsDisplay = getRequiredElement("stats");
-
-    const context = canvas.getContext("2d");
-    if (!context) throw new Error("Game of Life: canvas is not supported");
-
-    canvas.width = COLS * CELL_SIZE;
-    canvas.height = ROWS * CELL_SIZE;
-
-    let grid = createGrid();
-    let isRunning = false;
-    let generation = 0;
-    let loopTimeoutId = null;
-    let isDrawing = false;
-    let paintValue = 1;
-
-    function createGrid() {
-      return Array(ROWS)
-        .fill(null)
-        .map(() => Array(COLS).fill(0));
-    }
-
-    function spellYellow() {
-      grid = createGrid();
-      const startRow = 16;
-      let startCol = 8;
-
-      const letterL = [
-        [0, 0],
-        [1, 0],
-        [2, 0],
-        [3, 0],
-        [4, 0],
-        [5, 0],
-        [5, 1],
-        [5, 2],
-        [5, 3],
-        [5, 4],
-      ];
-      const letters = [
-        // [rowOffset, colOffset]
-        // Y
-        [
-          [0, 0],
-          [0, 6],
-          [1, 1],
-          [1, 5],
-          [2, 2],
-          [2, 4],
-          [3, 3],
-          [4, 3],
-          [5, 3],
-        ],
-        // E
-        [
-          [0, 0],
-          [0, 1],
-          [0, 2],
-          [0, 3],
-          [0, 4],
-          [1, 0],
-          [2, 0],
-          [2, 1],
-          [2, 2],
-          [2, 3],
-          [3, 0],
-          [4, 0],
-          [5, 0],
-          [5, 1],
-          [5, 2],
-          [5, 3],
-          [5, 4],
-        ],
-        // L
-        letterL,
-        // L
-        letterL,
-        // O
-        [
-          [0, 1],
-          [0, 2],
-          [0, 3],
-          [1, 0],
-          [1, 4],
-          [2, 0],
-          [2, 4],
-          [3, 0],
-          [3, 4],
-          [4, 0],
-          [4, 4],
-          [5, 1],
-          [5, 2],
-          [5, 3],
-        ],
-        // W
-        [
-          [0, 0],
-          [0, 6],
-          [1, 0],
-          [1, 6],
-          [2, 0],
-          [2, 3],
-          [2, 6],
-          [3, 0],
-          [3, 2],
-          [3, 4],
-          [3, 6],
-          [4, 0],
-          [4, 2],
-          [4, 4],
-          [4, 6],
-          [5, 1],
-          [5, 5],
-        ],
-      ];
-
-      letters.forEach((letter) => {
-        letter.forEach(([rowOffset, colOffset]) => {
-          grid[startRow + rowOffset][startCol + colOffset] = 1;
-        });
-        startCol += 9;
-      });
-    }
-
-    function draw() {
-      let liveCount = 0;
-
-      for (let row = 0; row < ROWS; row++) {
-        for (let col = 0; col < COLS; col++) {
-          const alive = grid[row][col] === 1;
-          context.fillStyle = alive ? COLORS.alive : COLORS.dead;
-          context.fillRect(
-            col * CELL_SIZE,
-            row * CELL_SIZE,
-            CELL_SIZE - 1,
-            CELL_SIZE - 1,
-          );
-          if (alive) liveCount++;
+          const neighborRow = (row + rowShift + ROWS) % ROWS; // wraps around edges
+          const neighborCol = (col + colShift + COLS) % COLS;
+          neighbors += current[indexOf(neighborRow, neighborCol)];
         }
       }
 
-      statsDisplay.textContent = `Generation: ${generation} | Live Cells: ${liveCount}`;
+      const cell = indexOf(row, col);
+      const alive =
+        neighbors === 3 || (neighbors === 2 && current[cell] === 1) ? 1 : 0;
+      target[cell] = alive;
+      liveCount += alive;
     }
-
-    function runNextGeneration() {
-      grid = getNextGrid(grid); // replace
-      generation++; // increment counter
-    }
-
-    function gameLoop() {
-      if (!isRunning) return;
-      runNextGeneration();
-      draw();
-      loopTimeoutId = setTimeout(gameLoop, TICK_MS);
-    }
-
-    function getCellFromMouse(pointerEvent) {
-      const bounds = canvas.getBoundingClientRect();
-      // scale
-      const col = Math.floor(
-        ((pointerEvent.clientX - bounds.left) / bounds.width) * COLS,
-      );
-      const row = Math.floor(
-        ((pointerEvent.clientY - bounds.top) / bounds.height) * ROWS,
-      );
-      const onGrid = row >= 0 && row < ROWS && col >= 0 && col < COLS;
-      return onGrid ? { row, col } : null;
-    }
-
-    function activateCellAtMouse(pointerEvent) {
-      const cell = getCellFromMouse(pointerEvent);
-      if (!cell) return;
-      if (grid[cell.row][cell.col] === paintValue) return; // nothing to change
-      grid[cell.row][cell.col] = paintValue;
-      draw();
-    }
-
-    function setRunning(running) {
-      isRunning = running;
-      startBtn.textContent = running ? "Pause" : "Start";
-      startBtn.dataset.running = running;
-      stepBtn.disabled = running; // while paused
-      clearTimeout(loopTimeoutId); // rm old loops
-      if (running) gameLoop();
-    }
-
-    function resetGrid(setup) {
-      setRunning(false);
-      generation = 0;
-      setup();
-      draw();
-    }
-
-    function onPointerDown(pointerEvent) {
-      isDrawing = true;
-      canvas.setPointerCapture(pointerEvent.pointerId); // keep receiving moves if the pointer leaves the canvas
-      const cell = getCellFromMouse(pointerEvent);
-      if (cell) paintValue = grid[cell.row][cell.col] === 1 ? 0 : 1; // alive? erase. dead? draw.
-      activateCellAtMouse(pointerEvent);
-    }
-
-    function onPointerMove(pointerEvent) {
-      if (isDrawing) activateCellAtMouse(pointerEvent);
-    }
-
-    function onPointerUp() {
-      isDrawing = false;
-    }
-
-    function onStartClick() {
-      setRunning(!isRunning);
-    }
-
-    function onStepClick() {
-      if (isRunning) return;
-      runNextGeneration();
-      draw();
-    }
-
-    function onResetClick() {
-      resetGrid(spellYellow);
-    }
-
-    function onClearClick() {
-      resetGrid(() => (grid = createGrid()));
-    }
-
-    canvas.addEventListener("pointerdown", onPointerDown);
-    canvas.addEventListener("pointermove", onPointerMove);
-    window.addEventListener("pointerup", onPointerUp);
-    window.addEventListener("pointercancel", onPointerUp);
-
-    startBtn.addEventListener("click", onStartClick);
-    stepBtn.addEventListener("click", onStepClick);
-    resetBtn.addEventListener("click", onResetClick);
-    clearBtn.addEventListener("click", onClearClick);
-
-    spellYellow();
-    draw();
   }
 
-  return { onLoad };
-})();
+  return liveCount;
+}
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", Yellow.GameOfLife.onLoad);
-} else {
-  Yellow.GameOfLife.onLoad();
+export function writeWord(grid, word) {
+  grid.fill(0);
+  let startCol = WORD_START_COL;
+
+  for (const letter of word) {
+    for (const [rowOffset, colOffset] of LETTERS[letter]) {
+      grid[indexOf(WORD_START_ROW + rowOffset, startCol + colOffset)] = 1;
+    }
+    startCol += LETTER_SPACING;
+  }
+}
+
+export function countLiveCells(grid) {
+  let count = 0;
+  for (let cell = 0; cell < SIZE; cell++) count += grid[cell];
+  return count;
+}
+
+function getRequiredElement(id) {
+  const element = document.getElementById(id);
+  if (!element) throw new Error(`Game of Life: missing element #${id}`);
+  return element;
+}
+
+export function init() {
+  const canvas = getRequiredElement("lifeCanvas");
+  const startBtn = getRequiredElement("startButton");
+  const stepBtn = getRequiredElement("stepButton");
+  const resetBtn = getRequiredElement("resetButton");
+  const clearBtn = getRequiredElement("clearButton");
+  const statsDisplay = getRequiredElement("stats");
+
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("Game of Life: canvas is not supported");
+
+  canvas.width = COLS * CELL_SIZE;
+  canvas.height = ROWS * CELL_SIZE;
+
+  let grid = new Uint8Array(SIZE);
+  let back = new Uint8Array(SIZE);
+  let liveCount = 0;
+  let isRunning = false;
+  let generation = 0;
+  let loopTimeoutId = null;
+  let isDrawing = false;
+  let paintValue = 1;
+
+  const updateStats = () => {
+    statsDisplay.textContent = `Generation: ${generation} | Live Cells: ${liveCount}`;
+  };
+
+  const fillCell = (cell) => {
+    context.fillRect(
+      (cell % COLS) * CELL_SIZE,
+      Math.trunc(cell / COLS) * CELL_SIZE,
+      CELL_SIZE - 1,
+      CELL_SIZE - 1,
+    );
+  };
+
+  const drawCell = (cell) => {
+    context.fillStyle = grid[cell] === 1 ? ALIVE_COLOR : DEAD_COLOR;
+    fillCell(cell);
+  };
+
+  const drawAll = () => {
+    for (const value of [0, 1]) {
+      context.fillStyle = value === 1 ? ALIVE_COLOR : DEAD_COLOR;
+      for (let cell = 0; cell < SIZE; cell++) {
+        if (grid[cell] === value) fillCell(cell);
+      }
+    }
+    updateStats();
+  };
+
+  const drawChanged = () => {
+    for (let cell = 0; cell < SIZE; cell++) {
+      if (grid[cell] !== back[cell]) drawCell(cell);
+    }
+    updateStats();
+  };
+
+  const step = () => {
+    liveCount = computeNextGeneration(grid, back);
+    [grid, back] = [back, grid]; // swap buffers
+    generation++;
+    drawChanged();
+  };
+
+  const gameLoop = () => {
+    if (!isRunning) return;
+    step();
+    loopTimeoutId = setTimeout(gameLoop, TICK_MS);
+  };
+
+  const setRunning = (running) => {
+    isRunning = running;
+    startBtn.textContent = running ? "Pause" : "Start";
+    startBtn.dataset.running = running;
+    stepBtn.disabled = running;
+    clearTimeout(loopTimeoutId); // remove any pending loop
+    if (running) gameLoop();
+  };
+
+  const resetGrid = (setup) => {
+    setRunning(false);
+    generation = 0;
+    setup(grid);
+    liveCount = countLiveCells(grid);
+    drawAll();
+  };
+
+  const getIndexFromPointer = (pointerEvent) => {
+    const bounds = canvas.getBoundingClientRect();
+    const col = Math.floor(
+      ((pointerEvent.clientX - bounds.left) / bounds.width) * COLS,
+    );
+    const row = Math.floor(
+      ((pointerEvent.clientY - bounds.top) / bounds.height) * ROWS,
+    );
+    const onGrid = row >= 0 && row < ROWS && col >= 0 && col < COLS;
+    return onGrid ? indexOf(row, col) : -1;
+  };
+
+  const paintAtPointer = (pointerEvent) => {
+    const cell = getIndexFromPointer(pointerEvent);
+    if (cell === -1 || grid[cell] === paintValue) return; // off grid
+    grid[cell] = paintValue;
+    liveCount += paintValue === 1 ? 1 : -1;
+    drawCell(cell); // only cell not grid
+    updateStats();
+  };
+
+  const onPointerDown = (pointerEvent) => {
+    isDrawing = true;
+    canvas.setPointerCapture(pointerEvent.pointerId); // keep receiving moves outside the canvas
+    const cell = getIndexFromPointer(pointerEvent);
+    if (cell !== -1) paintValue = grid[cell] === 1 ? 0 : 1; // alive? erase. dead? draw.
+    paintAtPointer(pointerEvent);
+  };
+
+  const onPointerMove = (pointerEvent) => {
+    if (isDrawing) paintAtPointer(pointerEvent);
+  };
+
+  const onPointerUp = () => {
+    isDrawing = false;
+  };
+
+  canvas.addEventListener("pointerdown", onPointerDown);
+  canvas.addEventListener("pointermove", onPointerMove);
+  window.addEventListener("pointerup", onPointerUp);
+  window.addEventListener("pointercancel", onPointerUp);
+
+  startBtn.addEventListener("click", () => setRunning(!isRunning));
+  stepBtn.addEventListener("click", () => {
+    if (!isRunning) step();
+  });
+  resetBtn.addEventListener("click", () =>
+    resetGrid((g) => writeWord(g, WORD)),
+  );
+  clearBtn.addEventListener("click", () => resetGrid((g) => g.fill(0)));
+
+  resetGrid((g) => writeWord(g, WORD));
+}
+
+if (typeof document !== "undefined") {
+  init();
 }
